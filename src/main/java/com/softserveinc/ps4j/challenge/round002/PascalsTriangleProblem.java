@@ -16,7 +16,21 @@ package com.softserveinc.ps4j.challenge.round002;
 class PascalsTriangleProblem {
 
     int[] solve(int row) {
-        throw new UnsupportedOperationException("not yet implemented");
+        int rowSize = row + 1;
+        int[] rowPresentation = new int[rowSize];
+        for (int column = 0; column < rowSize; column++) {
+            rowPresentation[column] = Math.toIntExact(factorial(row) / (factorial(column) * factorial(row - column)));
+        }
+        return rowPresentation;
     }
 
+    public long factorial(int n) {
+        if (n == 0) {
+            return 1;
+        }
+        if (n <= 2) {
+            return n;
+        }
+        return n * factorial(n - 1);
+    }
 }
