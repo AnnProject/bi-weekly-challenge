@@ -16,32 +16,39 @@ import java.util.*;
 class MazeTraversalProblem {
 
     Optional<List<Cell>> solve(Maze maze) {
-        Cell current = maze.getEntry();
+        Step current = new Step(maze.getEntry(), 0);
         List<Cell> way = new ArrayList<>();
-        Deque<Cell> edges = new ArrayDeque<>();
+        Deque<Step> edges = new ArrayDeque<>();
         Set<Cell> tried = new HashSet<>();
+
         edges.add(current);
+        tried.add(current.cell());
 
         while (!edges.isEmpty() && !current.equals(maze.getExit())) {
+            int previousStep = current.stepNumber();
             boolean isDeadEnd = true;
-            isDeadEnd &= addIfTraversable(current.up(), maze, edges, tried);
-            isDeadEnd &= addIfTraversable(current.down(), maze, edges, tried);
-            isDeadEnd &= addIfTraversable(current.right(), maze, edges, tried);
-            isDeadEnd &= addIfTraversable(current.left(), maze, edges, tried);
+
+            current = edges.pop();
+
+            isDeadEnd &= addIfTraversable(current.cell().up(), maze, edges, tried, current);
+            isDeadEnd &= addIfTraversable(current.cell().down(), maze, edges, tried, current);
+            isDeadEnd &= addIfTraversable(current.cell().right(), maze, edges, tried, current);
+            isDeadEnd &= addIfTraversable(current.cell().left(), maze, edges, tried, current);
 
             if (isDeadEnd) {
-                way.remove(current);
+                int deleteSize = previousStep - current.stepNumber();
+                way = way.subList(0, way.size() - deleteSize);
             }
-            current = edges.pop();
-            way.add(current);
+
+            way.add(current.cell());
         }
 
-        return current.equals(maze.getExit()) ? Optional.of(way) : Optional.empty();
+        return current.cell().equals(maze.getExit()) ? Optional.of(way) : Optional.empty();
     }
 
-    private boolean addIfTraversable(Cell cell, Maze maze, Deque<Cell> ways, Set<Cell> tried ) {
+    private boolean addIfTraversable(Cell cell, Maze maze, Deque<Step> edges, Set<Cell> tried, Step current) {
         if (maze.canTraverse(cell) && tried.add(cell)) {
-            ways.add(cell);
+            edges.add(new Step(cell, current.stepNumber() + 1));
             return true;
         }
         return false;
@@ -65,6 +72,9 @@ record Cell(int x, int y) {
     Cell right() {
         return new Cell(x, y + 1);
     }
+}
+
+record Step(Cell cell, int stepNumber) {
 }
 
 final class Maze {
