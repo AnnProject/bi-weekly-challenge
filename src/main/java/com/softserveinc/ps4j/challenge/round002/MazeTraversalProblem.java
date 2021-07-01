@@ -16,9 +16,36 @@ import java.util.*;
 class MazeTraversalProblem {
 
     Optional<List<Cell>> solve(Maze maze) {
-        throw new UnsupportedOperationException("not yet implemented");
+        Cell current = maze.getEntry();
+        List<Cell> way = new ArrayList<>();
+        Deque<Cell> edges = new ArrayDeque<>();
+        Set<Cell> tried = new HashSet<>();
+        edges.add(current);
+
+        while (!edges.isEmpty() && !current.equals(maze.getExit())) {
+            boolean isDeadEnd = true;
+            isDeadEnd &= addIfTraversable(current.up(), maze, edges, tried);
+            isDeadEnd &= addIfTraversable(current.down(), maze, edges, tried);
+            isDeadEnd &= addIfTraversable(current.right(), maze, edges, tried);
+            isDeadEnd &= addIfTraversable(current.left(), maze, edges, tried);
+
+            if (isDeadEnd) {
+                way.remove(current);
+            }
+            current = edges.pop();
+            way.add(current);
+        }
+
+        return current.equals(maze.getExit()) ? Optional.of(way) : Optional.empty();
     }
 
+    private boolean addIfTraversable(Cell cell, Maze maze, Deque<Cell> ways, Set<Cell> tried ) {
+        if (maze.canTraverse(cell) && tried.add(cell)) {
+            ways.add(cell);
+            return true;
+        }
+        return false;
+    }
 }
 
 record Cell(int x, int y) {
@@ -38,7 +65,6 @@ record Cell(int x, int y) {
     Cell right() {
         return new Cell(x, y + 1);
     }
-
 }
 
 final class Maze {
