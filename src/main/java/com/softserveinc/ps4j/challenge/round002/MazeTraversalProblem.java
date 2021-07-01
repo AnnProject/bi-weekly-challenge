@@ -20,28 +20,29 @@ class MazeTraversalProblem {
         List<Cell> way = new ArrayList<>();
         Deque<Step> edges = new ArrayDeque<>();
         Set<Cell> tried = new HashSet<>();
-
+        int previousStep = current.stepNumber();
         edges.add(current);
         tried.add(current.cell());
 
         while (!edges.isEmpty() && !current.equals(maze.getExit())) {
-            int previousStep = current.stepNumber();
-            boolean isDeadEnd = true;
-
             current = edges.pop();
 
-            isDeadEnd &= addIfTraversable(current.cell().up(), maze, edges, tried, current);
-            isDeadEnd &= addIfTraversable(current.cell().down(), maze, edges, tried, current);
-            isDeadEnd &= addIfTraversable(current.cell().right(), maze, edges, tried, current);
-            isDeadEnd &= addIfTraversable(current.cell().left(), maze, edges, tried, current);
+            boolean isDeadEnd = addIfTraversable(current.cell().up(), maze, edges, tried, current) &
+                    addIfTraversable(current.cell().down(), maze, edges, tried, current) &
+                    addIfTraversable(current.cell().right(), maze, edges, tried, current) &
+                    addIfTraversable(current.cell().left(), maze, edges, tried, current);
 
-            if (isDeadEnd) {
-                int deleteSize = previousStep - current.stepNumber();
-                way = way.subList(0, way.size() - deleteSize);
+            if (isDeadEnd && !current.equals(maze.getExit())) {
+                int deleteSize = current.stepNumber() - previousStep - 1;
+                if (deleteSize > 0) {
+                    way = way.subList(0, way.size() - deleteSize);
+                }
+            } else {
+                way.add(current.cell());
+                previousStep = current.stepNumber();
             }
-
-            way.add(current.cell());
         }
+        way.add(maze.getExit());
 
         return current.cell().equals(maze.getExit()) ? Optional.of(way) : Optional.empty();
     }
@@ -49,9 +50,9 @@ class MazeTraversalProblem {
     private boolean addIfTraversable(Cell cell, Maze maze, Deque<Step> edges, Set<Cell> tried, Step current) {
         if (maze.canTraverse(cell) && tried.add(cell)) {
             edges.add(new Step(cell, current.stepNumber() + 1));
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 }
 
